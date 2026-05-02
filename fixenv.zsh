@@ -12,3 +12,8 @@ fi
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     export PATH="$HOME/.local/bin:$PATH"
 fi
+
+#Check if USER is set, if not try to set it from the id command, if that also fails, set it to "unknown"
+if [[ -z "$USER" ]]; then
+    export USER=$(id -un 2>/dev/null || echo "unknown")
+fi
