@@ -86,6 +86,12 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh --cmd cd)"
 fi
 
+# Initialize direnv if installed
+# (Direnv safely ignores .envrc files until you explicitly run 'direnv allow')
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
 # Wait for background jobs to finish before showing the prompt
 wait
 
