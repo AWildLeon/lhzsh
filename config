@@ -60,6 +60,13 @@ done
 # Enable Custom Theme
 source "$LHZSH_CONFIG_DIR/theme.zsh"
 
+# Line Editing Keybindings (Ctrl+Arrows, Ctrl+Backspace, Ctrl+Delete)
+bindkey '^[[1;5D' backward-word      # Ctrl+Left
+bindkey '^[[1;5C' forward-word       # Ctrl+Right
+bindkey '^H' backward-kill-word      # Ctrl+Backspace
+bindkey '^W' backward-kill-word      # Ctrl+W
+bindkey '^[[3;5~' kill-word          # Ctrl+Delete
+
 # History Substring Search Keybindings
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
