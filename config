@@ -1,0 +1,39 @@
+#!/usr/bin/env zsh
+# shellcheck shell=bash
+
+# Unused variables are intentional for configuration purposes, so we disable the warning for unused variables.
+# shellcheck disable=SC2034
+
+LHZSH_CONFIG_DIR=$(realpath ~/.lhzsh)
+LHZSH_PLUGINS_DIR="$LHZSH_CONFIG_DIR/plugins"
+
+# History
+HISTFILE=$LHZSH_CONFIG_DIR/data/history
+HISTSIZE=2000
+SAVEHIST=2000
+
+setopt autocd notify
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
+
+bindkey -e
+
+zstyle :compinstall filename "$LHZSH_CONFIG_DIR/data/completions"
+
+autoload -Uz compinit && compinit
+
+setopt CORRECT               # Tippfehler-Korrektur vorschlagen
+
+setopt MENU_COMPLETE         # erstes Match sofort einsetzen
+setopt AUTO_LIST             # Optionen automatisch listen
+
+zstyle ':completion:*' menu select          # navigierbare Completion-Liste
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # case-insensitive
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"  # Farben in Completion
+
+setopt INTERACTIVE_COMMENTS
+
+
+for f in "$LHZSH_PLUGINS_DIR"/**/*.plugin.zsh(N); do
+    source "$f"
+done
