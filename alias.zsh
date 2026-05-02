@@ -29,3 +29,12 @@ alias dps="docker ps"
 alias dpa="docker ps -a"
 alias di="docker images"
 alias dex="docker exec -it"
+
+# Clipboard Integration
+if command -v wl-copy &> /dev/null; then
+    alias cb="wl-copy"
+elif command -v xclip &> /dev/null; then
+    alias cb="xclip -selection clipboard"
+elif command -v xsel &> /dev/null; then
+    alias cb="xsel --clipboard --input"
+fi
