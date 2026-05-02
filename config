@@ -90,3 +90,6 @@ fi
 wait
 
 setopt monitor
+
+# Clean up environment and functions
+unset -f term_greeting
