@@ -1,0 +1,115 @@
+#!/usr/bin/env sh
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+CMD="$1"
+if [ $# -gt 0 ]; then
+    shift
+fi
+ARGS="$@"
+
+# Set $HOME if not set, to ensure consistent behavior across environments
+if [ -z "$HOME" ]; then
+    HOME=$(realpath ~)
+fi
+
+LHZSH_DIR="$HOME/.lhzsh"
+
+# If EDITOR is not set, fallback to nano
+EDITOR="${EDITOR:-nano}"
+
+show_help() {
+    echo "LHZSH Management Command"
+    echo "Usage: lhzsh [command]"
+    echo ""
+    echo "Commands:"
+    echo "  install    Install LHZSH via Git"
+    echo "  update     Fetch the latest changes and update plugins"
+    echo "  edit       Open the LHZSH config file in your default editor (\$EDITOR)"
+    echo "  reload     Reload the current Zsh session"
+    echo "  uninstall  Remove LHZSH from your system"
+    echo "  help       Show this help message"
+}
+
+case "$CMD" in
+    install)
+        echo "Installing LHZSH into ~/.zshrc..."
+        if [ -f "$HOME/.zshrc" ]; then
+            if grep -qi "oh-my-zsh" "$HOME/.zshrc" 2>/dev/null; then
+                echo "Warning: Found oh-my-zsh or other customizations in ~/.zshrc."
+                printf "Do you want to backup and clear the existing ~/.zshrc before installing LHZSH? [y/N]: "
+                read -r ANS
+                case "$ANS" in
+                    [Yy]*)
+                        mv "$HOME/.zshrc" "$HOME/.zshrc.backup-lhzsh-$(date +%s)"
+                        echo "Backed up ~/.zshrc"
+                        touch "$HOME/.zshrc"
+                        ;;
+                    *)
+                        echo "Proceeding to append LHZSH to existing ~/.zshrc."
+                        ;;
+                esac
+            fi
+        fi
+
+        if grep -q "# --- LHZSH START ---" "$HOME/.zshrc" 2>/dev/null; then
+            echo "LHZSH block is already present in ~/.zshrc."
+        else
+            {
+        
+                echo ""
+                echo "# --- LHZSH START ---"
+                echo "source ~/.lhzsh/config"
+                echo "# --- LHZSH END ---"
+        
+            }  >> "$HOME/.zshrc"
+        
+            echo "Added LHZSH block to ~/.zshrc."
+            echo "Please run 'lhzsh reload' or open a new terminal."
+        fi
+        ;;
+    
+    update)
+        echo "Updating LHZSH..."
+        if [ ! -d "$LHZSH_DIR/.git" ]; then
+            echo "Error: $LHZSH_DIR is not a git repository."
+            exit 1
+        fi
+        cd "$LHZSH_DIR"
+        git pull origin main || true
+        git submodule update --init --recursive
+        echo "Update complete. You may want to run 'lhzsh reload'."
+        ;;
+        
+    edit)
+        echo "Opening LHZSH config in $EDITOR..."
+        "$EDITOR" "$LHZSH_DIR/config"
+        ;;
+        
+    reload)
+        echo "Reloading Zsh session..."
+        exec zsh
+        ;;
+        
+    uninstall)
+        echo "Uninstalling LHZSH from ~/.zshrc..."
+        if [ -f "$HOME/.zshrc" ]; then
+            # Delete the block if it exists
+            sed -i '/# --- LHZSH START ---/,/# --- LHZSH END ---/d' "$HOME/.zshrc"
+            # Delete legacy lines just in case
+            sed -i '/source \~\/.lhzsh\/config/d' "$HOME/.zshrc"
+            sed -i '\|source "$HOME/.lhzsh/config"|d' "$HOME/.zshrc"
+            sed -i '\|source $HOME/.lhzsh/config|d' "$HOME/.zshrc"
+            echo "Removed LHZSH source block from ~/.zshrc."
+            echo "Note: The ~/.lhzsh folder itself was not deleted."
+        else
+            echo "~/.zshrc not found."
+        fi
+        ;;
+        
+    help|*)
+        show_help
+        ;;
+esac
+
