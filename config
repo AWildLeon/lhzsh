@@ -7,14 +7,33 @@
 LHZSH_CONFIG_DIR=$(realpath ~/.lhzsh)
 LHZSH_PLUGINS_DIR="$LHZSH_CONFIG_DIR/plugins"
 
+# Temporarily disable job notifications.
+unsetopt monitor
+
+term_greeting(){
+    echo ""
+    fastfetch -c "$LHZSH_CONFIG_DIR/fastfetch.jsonc"
+    echo ""
+}
+
+
+# Check if Fastfetch is available and start it in the background if the shell is interactive
+if [[ -o interactive ]] && command -v fastfetch &> /dev/null; then
+    term_greeting &
+fi
+
 # History
 HISTFILE=$LHZSH_CONFIG_DIR/data/history
 HISTSIZE=2000
 SAVEHIST=2000
 
-setopt autocd notify
-setopt HIST_VERIFY
-setopt SHARE_HISTORY
+setopt autocd notify         # Change directory without cd, report status of background jobs immediately
+setopt EXTENDED_HISTORY      # Save timestamps in history
+setopt HIST_IGNORE_DUPS      # Do not record an event that was just recorded again
+setopt HIST_IGNORE_SPACE     # Do not record an event starting with a space
+setopt HIST_EXPIRE_DUPS_FIRST # Delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt SHARE_HISTORY         # Share history between all sessions
+setopt HIST_VERIFY           # Do not execute immediately upon history expansion
 
 bindkey -e
 
@@ -37,3 +56,17 @@ setopt INTERACTIVE_COMMENTS
 for f in "$LHZSH_PLUGINS_DIR"/**/*.plugin.zsh(N); do
     source "$f"
 done
+
+# Enable Custom Theme
+source "$LHZSH_CONFIG_DIR/theme.zsh"
+
+# History Substring Search Keybindings
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+source "$LHZSH_CONFIG_DIR/alias.zsh"
+
+# Wait for background jobs to finish before showing the prompt
+wait
+
+setopt monitor
