@@ -50,6 +50,12 @@ zstyle ':completion:*' menu select          # navigierbare Completion-Liste
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # case-insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"  # Farben in Completion
 
+# Advanced Autocompletion styling
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
+zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+
 setopt INTERACTIVE_COMMENTS
 
 
@@ -66,12 +72,19 @@ bindkey '^[[1;5C' forward-word       # Ctrl+Right
 bindkey '^H' backward-kill-word      # Ctrl+Backspace
 bindkey '^W' backward-kill-word      # Ctrl+W
 bindkey '^[[3;5~' kill-word          # Ctrl+Delete
+bindkey '^[[Z' reverse-menu-complete # Shift-Tab
 
 # History Substring Search Keybindings
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
 source "$LHZSH_CONFIG_DIR/alias.zsh"
+
+# Initialize zoxide if installed
+if command -v zoxide &> /dev/null; then
+    export _ZO_DATA_DIR="$LHZSH_CONFIG_DIR/data/zoxide"
+    eval "$(zoxide init zsh --cmd cd)"
+fi
 
 # Wait for background jobs to finish before showing the prompt
 wait
