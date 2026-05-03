@@ -1,6 +1,13 @@
-alias ls="ls --color=auto"
-alias ll="ls -l"
-alias la="ls -la"
+if command -v eza &> /dev/null; then
+    alias ls="eza --color=auto"
+    alias ll="eza -l"
+    alias la="eza -la"
+else
+    alias ls="ls --color=auto"
+    alias ll="ls -l"
+    alias la="ls -la"
+fi
+
 alias "cd.."="cd .."
 alias "cd..."="cd ../.."
 alias "cd...."="cd ../../.."
