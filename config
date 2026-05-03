@@ -48,7 +48,10 @@ check_for_updates_in_background() {
 
 # Check if Fastfetch is available and start it in the background if the shell is interactive
 if [[ -o interactive ]] && command -v fastfetch &> /dev/null; then
-    term_greeting &
+    if [[ -z "$LHZSH_RELOADING" ]]; then
+        term_greeting &
+    fi
+    unset LHZSH_RELOADING
 fi
 
 # History
@@ -96,6 +99,8 @@ done
 source "$LHZSH_CONFIG_DIR/theme.zsh"
 
 # Line Editing Keybindings (Ctrl+Arrows, Ctrl+Backspace, Ctrl+Delete)
+bindkey '^[[3~' delete-char          # Delete
+bindkey '^?' backward-delete-char    # Backspace
 bindkey '^[[1;5D' backward-word      # Ctrl+Left
 bindkey '^[[1;5C' forward-word       # Ctrl+Right
 bindkey '^H' backward-kill-word      # Ctrl+Backspace
@@ -132,6 +137,7 @@ setopt monitor
 lhzsh() {
     if [[ "$1" == "reload" ]]; then
         echo "Reloading Zsh session..."
+        export LHZSH_RELOADING=1
         exec zsh
     else
         command lhzsh "$@"
