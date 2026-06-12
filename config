@@ -3,6 +3,10 @@
 
 # shellcheck disable=SC2034
 
+if [[ -z "$HOME" ]]; then
+    export HOME=$(realpath ~)
+fi
+
 LHZSH_CONFIG_DIR="${LHZSH_CONFIG_DIR:-${${(%):-%N}:A:h}}"
 LHZSH_PLUGINS_DIR="${LHZSH_PLUGINS_DIR:-$LHZSH_CONFIG_DIR/plugins}"
 

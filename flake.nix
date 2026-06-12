@@ -105,9 +105,9 @@
                 description = "LHZSH package to install and source for interactive zsh shells.";
               };
               dataDir = lib.mkOption {
-                type = lib.types.str;
-                default = "$HOME/.local/share/lhzsh";
-                description = "Writable directory for LHZSH state.";
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Writable directory for LHZSH state. If null, LHZSH chooses a per-user default at shell startup.";
               };
             };
 
@@ -115,7 +115,7 @@
               environment.systemPackages = [ package ];
               programs.zsh.enable = true;
               programs.zsh.interactiveShellInit = lib.mkAfter ''
-                export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}
+                ${lib.optionalString (cfg.dataDir != null) "export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}"}
                 source ${package}/share/lhzsh/config
               '';
             };
