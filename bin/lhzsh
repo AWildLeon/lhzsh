@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
 CMD="$1"
@@ -9,14 +8,13 @@ if [ $# -gt 0 ]; then
 fi
 ARGS="$@"
 
-# Set $HOME if not set, to ensure consistent behavior across environments
 if [ -z "$HOME" ]; then
     HOME=$(realpath ~)
 fi
 
-LHZSH_DIR="$HOME/.lhzsh"
+LHZSH_DIR="${LHZSH_DIR:-$HOME/.lhzsh}"
+LHZSH_SOURCE="${LHZSH_SOURCE:-}"
 
-# If EDITOR is not set, fallback to nano
 EDITOR="${EDITOR:-nano}"
 
 show_help() {
@@ -53,6 +51,10 @@ case "$CMD" in
             fi
         fi
 
+        if [ -d "$LHZSH_DIR/.git" ] && command -v git >/dev/null 2>&1; then
+            git -C "$LHZSH_DIR" submodule update --init --recursive || true
+        fi
+
         if grep -q "# --- LHZSH START ---" "$HOME/.zshrc" 2>/dev/null; then
             echo "LHZSH block is already present in ~/.zshrc."
         else
@@ -60,7 +62,11 @@ case "$CMD" in
         
                 echo ""
                 echo "# --- LHZSH START ---"
-                echo "source ~/.lhzsh/config"
+                if [ -n "$LHZSH_SOURCE" ]; then
+                    echo "source $LHZSH_SOURCE"
+                else
+                    echo "source ~/.lhzsh/config"
+                fi
                 echo "# --- LHZSH END ---"
         
             }  >> "$HOME/.zshrc"
@@ -95,9 +101,8 @@ case "$CMD" in
     uninstall)
         echo "Uninstalling LHZSH from ~/.zshrc..."
         if [ -f "$HOME/.zshrc" ]; then
-            # Delete the block if it exists
             sed -i '/# --- LHZSH START ---/,/# --- LHZSH END ---/d' "$HOME/.zshrc"
-            # Delete legacy lines just in case
+            # Legacy source lines.
             sed -i '/source \~\/.lhzsh\/config/d' "$HOME/.zshrc"
             sed -i '\|source "$HOME/.lhzsh/config"|d' "$HOME/.zshrc"
             sed -i '\|source $HOME/.lhzsh/config|d' "$HOME/.zshrc"

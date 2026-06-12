@@ -1,16 +1,23 @@
 #!/usr/bin/env zsh
 # shellcheck shell=bash
 
-# Unused variables are intentional for configuration purposes, so we disable the warning for unused variables.
 # shellcheck disable=SC2034
 
-LHZSH_CONFIG_DIR=$(realpath ~/.lhzsh)
-LHZSH_PLUGINS_DIR="$LHZSH_CONFIG_DIR/plugins"
+LHZSH_CONFIG_DIR="${LHZSH_CONFIG_DIR:-${${(%):-%N}:A:h}}"
+LHZSH_PLUGINS_DIR="${LHZSH_PLUGINS_DIR:-$LHZSH_CONFIG_DIR/plugins}"
 
+if [[ -z "$LHZSH_DATA_DIR" ]]; then
+    if [[ "$LHZSH_CONFIG_DIR" == "$HOME/.lhzsh" ]]; then
+        LHZSH_DATA_DIR="$LHZSH_CONFIG_DIR/data"
+    else
+        LHZSH_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/lhzsh"
+    fi
+fi
+
+mkdir -p "$LHZSH_DATA_DIR"
 export PATH="$LHZSH_CONFIG_DIR/bin:$PATH"
 
-# Temporarily disable job notifications.
-unsetopt monitor
+[[ -o interactive ]] && unsetopt monitor 2>/dev/null || true
 
 term_greeting(){
     echo ""
@@ -23,12 +30,10 @@ check_for_updates_in_background() {
     if [ -d "$LHZSH_CONFIG_DIR/.git" ] && command -v git &> /dev/null; then
         (
             cd "$LHZSH_CONFIG_DIR" || exit
-            local UPDATE_FILE="$LHZSH_CONFIG_DIR/data/.update_check"
+            local UPDATE_FILE="$LHZSH_DATA_DIR/.update_check"
             
-            # Fetch remote changes at most once a day (86400 seconds)
-            # This avoids delaying startup and handles offline environments gracefully
+            # Check at most once per day.
             if [[ ! -f "$UPDATE_FILE" ]] || [[ $(($(date +%s) - $(stat -c %Y "$UPDATE_FILE" 2>/dev/null || stat -f %m "$UPDATE_FILE" 2>/dev/null || echo 0))) -gt 86400 ]]; then
-                # Use a 3-second timeout if the timeout command is available, and suppress errors
                 if command -v timeout &> /dev/null; then
                     timeout 3 git fetch --quiet 2>/dev/null
                 else
@@ -46,7 +51,6 @@ check_for_updates_in_background() {
     fi
 }
 
-# Check if Fastfetch is available and start it in the background if the shell is interactive
 if [[ -o interactive ]] && command -v fastfetch &> /dev/null; then
     if [[ -z "$LHZSH_RELOADING" ]]; then
         term_greeting &
@@ -55,7 +59,7 @@ if [[ -o interactive ]] && command -v fastfetch &> /dev/null; then
 fi
 
 # History
-HISTFILE=$LHZSH_CONFIG_DIR/data/history
+HISTFILE=$LHZSH_DATA_DIR/history
 HISTSIZE=2000
 SAVEHIST=2000
 
@@ -69,7 +73,9 @@ setopt HIST_VERIFY           # Do not execute immediately upon history expansion
 
 bindkey -e
 
-zstyle :compinstall filename "$LHZSH_CONFIG_DIR/data/completions"
+zstyle :compinstall filename "$LHZSH_DATA_DIR/completions"
+
+[[ -d "$LHZSH_PLUGINS_DIR/zsh-completions/src" ]] && fpath=("$LHZSH_PLUGINS_DIR/zsh-completions/src" $fpath)
 
 autoload -Uz compinit && compinit
 
@@ -82,7 +88,6 @@ zstyle ':completion:*' menu select          # navigierbare Completion-Liste
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # case-insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"  # Farben in Completion
 
-# Advanced Autocompletion styling
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
@@ -91,11 +96,13 @@ zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 setopt INTERACTIVE_COMMENTS
 
 
+[[ -r "$LHZSH_PLUGINS_DIR/zsh-history-substring-search/zsh-history-substring-search.zsh" ]] && \
+    source "$LHZSH_PLUGINS_DIR/zsh-history-substring-search/zsh-history-substring-search.zsh"
+
 for f in "$LHZSH_PLUGINS_DIR"/**/*.plugin.zsh(N); do
     source "$f"
 done
 
-# Enable Custom Theme
 source "$LHZSH_CONFIG_DIR/theme.zsh"
 
 # Line Editing Keybindings (Ctrl+Arrows, Ctrl+Backspace, Ctrl+Delete)
@@ -115,25 +122,20 @@ bindkey '^[[B' history-substring-search-down
 source "$LHZSH_CONFIG_DIR/alias.zsh"
 source "$LHZSH_CONFIG_DIR/fixenv.zsh"
 
-# Initialize zoxide if installed
 if command -v zoxide &> /dev/null; then
-    export _ZO_DATA_DIR="$LHZSH_CONFIG_DIR/data/zoxide"
+    export _ZO_DATA_DIR="$LHZSH_DATA_DIR/zoxide"
     eval "$(zoxide init zsh --cmd cd)"
 fi
 
-# Initialize direnv if installed
-# (Direnv safely ignores .envrc files until you explicitly run 'direnv allow')
 if command -v direnv &> /dev/null; then
     eval "$(direnv hook zsh)"
 fi
 
-# Wait for background jobs to finish before showing the prompt
 wait
 
-setopt monitor
+[[ -o interactive ]] && setopt monitor 2>/dev/null || true
 
-# LHZSH Management Shell Wrapper
-# This wraps the bin/lhzsh command to allow 'reload' to execute in the current shell context
+# Run reload in this shell.
 lhzsh() {
     if [[ "$1" == "reload" ]]; then
         echo "Reloading Zsh session..."
@@ -144,5 +146,4 @@ lhzsh() {
     fi
 }
 
-# Clean up environment and functions
 unset -f term_greeting
