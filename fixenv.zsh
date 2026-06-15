@@ -17,3 +17,18 @@ fi
 if [[ -z "$USER" ]]; then
     export USER=$(id -un 2>/dev/null || echo "unknown")
 fi
+
+#SSH_AUTH_SOCK: unset if it points to a non-existent file.
+if [[ -n "$SSH_AUTH_SOCK" && ! -e "$SSH_AUTH_SOCK" ]]; then
+    unset SSH_AUTH_SOCK
+fi
+
+# Set SSH_AUTH_SOCK to a existing socket if it is not set
+if [[ -z "$SSH_AUTH_SOCK" ]]; then
+    #Check $XDG_RUNTIME_DIR/ssh-agent{.socket}
+    if [[ -S "$XDG_RUNTIME_DIR/ssh-agent.socket" ]]; then
+        export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+    elif [[ -S "$XDG_RUNTIME_DIR/ssh-agent" ]]; then
+        export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
+    fi
+fi
