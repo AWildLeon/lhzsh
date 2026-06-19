@@ -144,8 +144,9 @@
 
             config = lib.mkIf cfg.enable {
               home.packages = [ package ];
+              programs.fastfetch.enable = true;
               programs.zsh.enable = true;
-              programs.zsh.initExtra = lib.mkAfter ''
+              programs.zsh.initContent = lib.mkAfter ''
                 export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}
                 source ${package}/share/lhzsh/config
               '';
