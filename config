@@ -124,6 +124,10 @@ done
 source "$LHZSH_CONFIG_DIR/theme.zsh"
 
 # Line Editing Keybindings (Ctrl+Arrows, Ctrl+Backspace, Ctrl+Delete)
+
+# Set WORDCHARS to exclude certain characters so that Ctrl+Arrow and Ctrl+Backspace work as expected.
+WORDCHARS='*?_[]~=&;!#$%^(){}<>'
+
 bindkey '^[[3~' delete-char          # Delete
 bindkey '^?' backward-delete-char    # Backspace
 bindkey '^[[1;5D' backward-word      # Ctrl+Left
