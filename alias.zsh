@@ -1,4 +1,5 @@
 if command -v eza &> /dev/null; then
+    export EZA_CONFIG_DIR="${EZA_CONFIG_DIR:-$LHZSH_CONFIG_DIR/eza-config}"
     alias ls="eza --color=auto"
     alias ll="eza -l"
     alias la="eza -la"

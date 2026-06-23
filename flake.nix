@@ -139,7 +139,10 @@
             };
 
             config = lib.mkIf cfg.enable {
-              environment.systemPackages = [ package ];
+              environment.systemPackages = [
+                package
+                pkgs.fastfetch
+              ];
 
               # Keep zsh registered as a system shell, but disable every bit of
               # NixOS's own zsh management so it contributes nothing to the
