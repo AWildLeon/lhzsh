@@ -27,10 +27,13 @@ term_greeting(){
     echo ""
     fastfetch -c "$LHZSH_CONFIG_DIR/fastfetch.jsonc"
     echo ""
-    check_for_updates_in_background
+    check_for_updates
 }
 
-check_for_updates_in_background() {
+check_for_updates() {
+    # Remove the comment below to disable automatic update checks.
+    # return 0
+
     if [ -d "$LHZSH_CONFIG_DIR/.git" ] && command -v git &> /dev/null; then
         (
             cd "$LHZSH_CONFIG_DIR" || exit
@@ -49,7 +52,18 @@ check_for_updates_in_background() {
             LOCAL=$(git rev-parse @ 2>/dev/null)
             REMOTE=$(git rev-parse @{u} 2>/dev/null)
             if [[ -n "$LOCAL" && -n "$REMOTE" && "$LOCAL" != "$REMOTE" ]]; then
-                echo -e "\e[1;33m➜ A new version of LHZSH is available! Run 'lhzsh update' to upgrade.\e[0m"
+                echo -e "\e[1;33m➜ A new version of LHZSH is available!\e[0m"
+                echo -ne "\e[1;33mDo you want to update (y/N)?\e[0m"
+                read -r -t 20 -n 1 ANS
+                echo ""
+                if [[ "$ANS" =~ ^[Yy]$ ]]; then
+                    echo "Updating LHZSH..."
+                    lhzsh update
+                    exec zsh
+                else
+                    echo -e "\e[1;33mYou can update at any time by running 'lhzsh update'.\e[0m"
+                fi
+
             fi
         )
     fi
