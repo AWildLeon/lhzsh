@@ -138,8 +138,13 @@ bindkey '^[[3;5~' kill-word          # Ctrl+Delete
 bindkey '^[[Z' reverse-menu-complete # Shift-Tab
 
 # History Substring Search Keybindings
+# Bind both normal-mode (^[[A) and application-mode (^[OA) sequences
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
+bindkey '^[OA' history-substring-search-up
+bindkey '^[OB' history-substring-search-down
+[[ -n "${terminfo[kcuu1]}" ]] && bindkey "${terminfo[kcuu1]}" history-substring-search-up
+[[ -n "${terminfo[kcud1]}" ]] && bindkey "${terminfo[kcud1]}" history-substring-search-down
 
 source "$LHZSH_CONFIG_DIR/alias.zsh"
 source "$LHZSH_CONFIG_DIR/fixenv.zsh"
