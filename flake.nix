@@ -16,7 +16,15 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-parts, zsh-completions, zsh-history-substring-search, ... }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      flake-parts,
+      zsh-completions,
+      zsh-history-substring-search,
+      ...
+    }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
@@ -25,7 +33,13 @@
         "aarch64-darwin"
       ];
 
-      perSystem = { lib, pkgs, system, ... }:
+      perSystem =
+        {
+          lib,
+          pkgs,
+          system,
+          ...
+        }:
         let
           lhzsh = pkgs.stdenvNoCC.mkDerivation {
             pname = "lhzsh";
@@ -53,7 +67,14 @@
 
               wrapProgram "$out/bin/lhzsh" \
                 --set LHZSH_SOURCE "$out/share/lhzsh/config" \
-                --prefix PATH : ${lib.makeBinPath [ pkgs.coreutils pkgs.git pkgs.gnused pkgs.zsh ]}
+                --prefix PATH : ${
+                  lib.makeBinPath [
+                    pkgs.coreutils
+                    pkgs.git
+                    pkgs.gnused
+                    pkgs.zsh
+                  ]
+                }
 
               runHook postInstall
             '';
@@ -90,7 +111,13 @@
           lhzsh = self.packages.${final.system}.lhzsh;
         };
 
-        nixosModules.default = { config, lib, pkgs, ... }:
+        nixosModules.default =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
           let
             cfg = config.programs.lhzsh;
             package = cfg.package;
@@ -113,15 +140,41 @@
 
             config = lib.mkIf cfg.enable {
               environment.systemPackages = [ package ];
-              programs.zsh.enable = true;
-              programs.zsh.interactiveShellInit = lib.mkAfter ''
-                ${lib.optionalString (cfg.dataDir != null) "export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}"}
-                source ${package}/share/lhzsh/config
-              '';
+
+              # Keep zsh registered as a system shell, but disable every bit of
+              # NixOS's own zsh management so it contributes nothing to the
+              # interactive config. LHZSH is fully self-contained (history,
+              # compinit, completion, prompt, keybindings, aliases) and is the
+              # single source of truth. With all the managed sections emptied,
+              # nothing follows our interactiveShellInit to override LHZSH.
+              programs.zsh = {
+                enable = true;
+                enableGlobalCompInit = lib.mkForce false;
+                enableCompletion = lib.mkForce false;
+                enableBashCompletion = lib.mkForce false;
+                enableLsColors = lib.mkForce false;
+                syntaxHighlighting.enable = lib.mkForce false;
+                autosuggestions.enable = lib.mkForce false;
+                promptInit = lib.mkForce "";
+                setOptions = lib.mkForce [ ];
+                shellAliases = lib.mkForce { };
+                interactiveShellInit = lib.mkAfter ''
+                  ${lib.optionalString (
+                    cfg.dataDir != null
+                  ) "export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}"}
+                  source ${package}/share/lhzsh/config
+                '';
+              };
             };
           };
 
-        homeManagerModules.default = { config, lib, pkgs, ... }:
+        homeManagerModules.default =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
           let
             cfg = config.programs.lhzsh;
             package = cfg.package;
