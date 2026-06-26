@@ -60,11 +60,11 @@
     "zsh-completions": {
       "flake": false,
       "locked": {
-        "lastModified": 1781482071,
-        "narHash": "sha256-9ao6BPipJQwzFvwFK5skvIusfE7tEuuPuPbInOPyq3k=",
+        "lastModified": 1782453053,
+        "narHash": "sha256-lRRmX3aNTmFu2zjSIROL0XUfkKN6dpsOpLPIVMtqijQ=",
         "owner": "zsh-users",
         "repo": "zsh-completions",
-        "rev": "4b23ecd62a9ad79ddf2ac03c0bd8a7b43266508c",
+        "rev": "03bae0bf3f9c4ab894f1f11a31ffe7a1e1029879",
         "type": "github"
       },
       "original": {
