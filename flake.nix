@@ -141,7 +141,7 @@
             config = lib.mkIf cfg.enable {
               environment.systemPackages = [
                 package
-                pkgs.fastfetch
+                pkgs.fastfetch.minimal
               ];
 
               # Keep zsh registered as a system shell, but disable every bit of
@@ -201,6 +201,7 @@
             config = lib.mkIf cfg.enable {
               home.packages = [ package ];
               programs.fastfetch.enable = true;
+              programs.fastfetch.package = pkgs.fastfetch.minimal;
               programs.zsh.enable = true;
               programs.zsh.initContent = lib.mkAfter ''
                 export LHZSH_DATA_DIR=${lib.escapeShellArg cfg.dataDir}
