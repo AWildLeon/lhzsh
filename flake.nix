@@ -142,7 +142,11 @@
               environment.systemPackages = [
                 package
                 pkgs.fastfetch.minimal
+                # Normally installed by programs.zsh.enableCompletion, which we force off below.
+                pkgs.nix-zsh-completions
               ];
+
+              environment.pathsToLink = [ "/share/zsh" ];
 
               # Keep zsh registered as a system shell, but disable every bit of
               # NixOS's own zsh management so it contributes nothing to the
